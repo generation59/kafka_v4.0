@@ -1,0 +1,53 @@
+kafka:
+  bootstrap_servers:
+    - kafka-0:9092
+    - kafka-1:9092
+    - kafka-2:9092
+  security:
+    ssl:
+      enabled: false
+      truststore_location: /path/to/truststore.jks
+      keystore_location: /path/to/keystore.jks
+      truststore_password: ${TRUSTSTORE_PASSWORD}
+      keystore_password: ${KEYSTORE_PASSWORD}
+      key_password: ${KEY_PASSWORD}
+
+topics:
+  balanced_topic:
+    partitions: 8
+    replication_factor: 3
+    configs:
+      retention.ms: 604800000  # 7 days
+      cleanup.policy: delete
+
+  topic_1:
+    partitions: 3
+    replication_factor: 3
+    configs:
+      retention.ms: 86400000  # 1 day
+      cleanup.policy: delete
+
+  topic_2:
+    partitions: 3
+    replication_factor: 3
+    configs:
+      retention.ms: 86400000  # 1 day
+      cleanup.policy: delete
+
+acl:
+  topic_1:
+    producers:
+      - principal: "User:producer"
+        host: "*"
+        operation: Write
+    consumers:
+      - principal: "User:consumer"
+        host: "*"
+        operation: Read
+
+  topic_2:
+    producers:
+      - principal: "User:producer"
+        host: "*"
+        operation: Write
+    consumers: []  # No consumer access 
