@@ -51,12 +51,13 @@ class SSLGenerator:
             logger.error(f"Ошибка при генерации CA: {e}")
             raise
             
-    def generate_broker_certificates(self, broker_names: List[str]) -> None:
+    def generate_broker_certificates(self, broker_names: List[str], cnf_path: str = None) -> None:
         """
         Генерация сертификатов для брокеров
         
         Args:
             broker_names: список имен брокеров
+            cnf_path: путь к .cnf файлу для openssl (с расширениями SAN)
         """
         try:
             for broker in broker_names:
@@ -67,14 +68,17 @@ class SSLGenerator:
                     "2048"
                 ], check=True)
                 
-                # Создание CSR для брокера
-                subprocess.run([
+                # Создание CSR для брокера с использованием .cnf файла
+                csr_cmd = [
                     "openssl", "req",
                     "-new",
                     "-key", f"{self.output_dir}/{broker}-key.pem",
                     "-out", f"{self.output_dir}/{broker}-csr.pem",
                     "-subj", f"/CN={broker}"
-                ], check=True)
+                ]
+                if cnf_path:
+                    csr_cmd += ["-config", cnf_path, "-extensions", "req_ext"]
+                subprocess.run(csr_cmd, check=True)
                 
                 # Подписание сертификата брокера CA
                 subprocess.run([
@@ -161,9 +165,15 @@ if __name__ == "__main__":
         # Генерация CA
         ssl_generator.generate_ca()
         
+        # Путь к .cnf файлу
+        cnf_path = os.path.abspath("infra/docker-compose/ssl/config/kafka_broker.cnf")
+        if not os.path.exists(cnf_path):
+            logger.warning(f"Файл конфигурации {cnf_path} не найден! Сертификаты будут сгенерированы без расширений SAN. Это может привести к ошибкам SSL.")
+            cnf_path = None
+        
         # Генерация сертификатов для брокеров
         broker_names = ["kafka-0", "kafka-1", "kafka-2"]
-        ssl_generator.generate_broker_certificates(broker_names)
+        ssl_generator.generate_broker_certificates(broker_names, cnf_path=cnf_path)
         
         # Создание keystore для каждого брокера
         password = "changeit"  # В реальном проекте использовать безопасный пароль

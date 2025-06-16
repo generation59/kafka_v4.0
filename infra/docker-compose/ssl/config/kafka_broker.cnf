@@ -1,0 +1,21 @@
+[ req ]
+default_bits       = 2048
+distinguished_name = req_distinguished_name
+req_extensions     = req_ext
+prompt             = no
+
+[ req_distinguished_name ]
+C  = RU
+ST = Moscow
+L  = Moscow
+O  = KafkaCluster
+OU = Brokers
+CN = kafka-broker
+
+[ req_ext ]
+subjectAltName = @alt_names
+
+[ alt_names ]
+DNS.1 = kafka-0
+DNS.2 = kafka-1
+DNS.3 = kafka-2 

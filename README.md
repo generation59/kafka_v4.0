@@ -29,20 +29,24 @@
 
 ## Установка и запуск
 
-### 1. Подготовка окружения
+### 1. Генерация SSL сертификатов (обязательно до запуска кластера)
+
+1. Убедитесь, что у вас установлен OpenSSL и keytool (обычно входит в JDK).
+2. Проверьте наличие файла конфигурации для сертификатов: `infra/docker-compose/ssl/config/kafka_broker.cnf`.
+   - Если файла нет, используйте пример из репозитория или создайте аналогичный.
+3. Сгенерируйте сертификаты с помощью скрипта:
+
 ```bash
-# Клонирование репозитория
-git clone <repository-url>
-cd kafka-cluster-management
-
-# Создание виртуального окружения
-python -m venv venv
-source venv/bin/activate  # для Linux/Mac
-venv\Scripts\activate     # для Windows
-
-# Установка зависимостей
-pip install -r requirements.txt
+# Активируйте виртуальное окружение, если требуется
+python src/utils/ssl_generator.py
 ```
+
+В результате в папке `infra/docker-compose/ssl/certificates` появятся файлы:
+- ca-cert.pem, ca-key.pem
+- kafka-0.jks, kafka-1.jks, kafka-2.jks
+- truststore.jks
+
+**Важно:** Сертификаты должны быть сгенерированы до запуска docker-compose!
 
 ### 2. Запуск кластера Kafka
 ```bash
@@ -68,6 +72,7 @@ docker-compose up -d
 
 ## Безопасность
 - Все сертификаты и ключи хранятся в директории `infra/docker-compose/ssl/certificates`
+- Конфигурационный файл для генерации сертификатов: `infra/docker-compose/ssl/config/kafka_broker.cnf`
 - Конфигурационные файлы с чувствительными данными исключены из системы контроля версий
 
 ## Лицензия
