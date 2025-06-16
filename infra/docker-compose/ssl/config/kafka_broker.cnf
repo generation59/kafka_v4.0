@@ -1,21 +1,30 @@
+[ policy_match ]
+countryName = match
+stateOrProvinceName = match
+organizationName = match
+organizationalUnitName = optional
+commonName = supplied
+emailAddress = optional
+
+
 [ req ]
-default_bits       = 2048
-distinguished_name = req_distinguished_name
-req_extensions     = req_ext
-prompt             = no
+prompt = no
+distinguished_name = dn
+default_md = sha256
+default_bits = 4096
+x509_extensions = v3_ca
 
-[ req_distinguished_name ]
-C  = RU
-ST = Moscow
-L  = Moscow
-O  = KafkaCluster
-OU = Brokers
-CN = kafka-broker
 
-[ req_ext ]
-subjectAltName = @alt_names
+[ dn ]
+countryName = RU
+organizationName = Yandex
+organizationalUnitName = Practice
+localityName = Moscow
+commonName = yandex-practice-kafka-ca
 
-[ alt_names ]
-DNS.1 = kafka-0
-DNS.2 = kafka-1
-DNS.3 = kafka-2 
+
+[ v3_ca ]
+subjectKeyIdentifier=hash
+basicConstraints = critical,CA:true
+authorityKeyIdentifier = keyid:always,issuer:always
+keyUsage = critical,keyCertSign,cRLSign
