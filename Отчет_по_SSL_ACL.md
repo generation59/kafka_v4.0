@@ -56,4 +56,4 @@ $ docker exec -it kafka1 kafka-acls.sh --authorizer-properties zookeeper.connect
 
 ## 9. Скриншот
 
-![img_3.png](img_3.png)
+![img_3.png](img/img_3.png)
