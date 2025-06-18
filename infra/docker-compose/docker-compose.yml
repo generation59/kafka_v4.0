@@ -1,87 +1,119 @@
-version: "3.5"
+version: "3.8"
+
 services:
-  x-kafka-common:
-    &kafka-common
-    image: bitnami/kafka:3.7
+  zookeeper:
+    image: bitnami/zookeeper:3.8
+    container_name: zookeeper
     environment:
-      &kafka-common-env
-      KAFKA_ENABLE_KRAFT: yes
-      ALLOW_PLAINTEXT_LISTENER: no
-      KAFKA_KRAFT_CLUSTER_ID: practicum
-      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: "CONTROLLER:SSL,EXTERNAL:SSL,SSL:SSL"
-      KAFKA_CFG_PROCESS_ROLES: broker,controller
-      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
-      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: 0@kafka-0:9093,1@kafka-1:9093,2@kafka-2:9093
-      KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE: true
-      KAFKA_CFG_SSL_KEYSTORE_LOCATION: /opt/bitnami/kafka/config/certs/kafka.jks
-      KAFKA_CFG_SSL_KEYSTORE_PASSWORD: changeit
-      KAFKA_CFG_SSL_KEY_PASSWORD: changeit
-      KAFKA_CFG_SSL_TRUSTSTORE_LOCATION: /opt/bitnami/kafka/config/certs/truststore.jks
-      KAFKA_CFG_SSL_TRUSTSTORE_PASSWORD: changeit
-      KAFKA_CFG_SSL_CLIENT_AUTH: required
-      KAFKA_CFG_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: HTTPS
+      ALLOW_ANONYMOUS_LOGIN: "yes"
+    ports:
+      - "2181:2181"
     networks:
       - proxynet
 
-  kafka-0:
-    <<: *kafka-common
-    container_name: kafka-0
-    restart: always
-    ports:
-      - "127.0.0.1:9094:9094"
+  kafka1:
+    image: bitnami/kafka:3.7
+    container_name: kafka1
+    depends_on:
+      - zookeeper
     environment:
-      <<: *kafka-common-env
-      KAFKA_CFG_NODE_ID: 0
-      KAFKA_CFG_LISTENERS: SSL://:9092,CONTROLLER://:9093,EXTERNAL://:9094
-      KAFKA_CFG_ADVERTISED_LISTENERS: SSL://kafka-0:9092,EXTERNAL://127.0.0.1:9094
+      KAFKA_BROKER_ID: "1"
+      KAFKA_ZOOKEEPER_PROTOCOL: PLAINTEXT
+      KAFKA_CFG_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_CFG_LISTENERS: SSL://:9093
+      KAFKA_CFG_ADVERTISED_LISTENERS: SSL://kafka1:9093
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: "SSL:SSL"
+      KAFKA_CFG_INTER_BROKER_LISTENER_NAME: SSL
+      KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_CFG_SSL_KEYSTORE_LOCATION: /bitnami/kafka/config/certs/kafka.keystore.jks
+      KAFKA_CFG_SSL_KEYSTORE_PASSWORD: changeit
+      KAFKA_CFG_SSL_KEY_PASSWORD: changeit
+      KAFKA_CFG_SSL_TRUSTSTORE_LOCATION: /bitnami/kafka/config/certs/kafka.truststore.jks
+      KAFKA_CFG_SSL_TRUSTSTORE_PASSWORD: changeit
+      KAFKA_CFG_SSL_CLIENT_AUTH: "none"
+      KAFKA_CFG_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: ""
     volumes:
-      - kafka_0_data:/bitnami/kafka
-      - ./ssl/certificates/kafka-0.jks:/opt/bitnami/kafka/config/certs/kafka.jks:ro
-      - ./ssl/certificates/truststore.jks:/opt/bitnami/kafka/config/certs/truststore.jks:ro
+      - ./ssl/certificates/kafka-1.jks:/bitnami/kafka/config/certs/kafka.keystore.jks:ro
+      - ./ssl/certificates/truststore.jks:/bitnami/kafka/config/certs/kafka.truststore.jks:ro
+      - ./ssl/config/client-ssl.properties:/bitnami/kafka/config/client-ssl.properties:ro
+    ports:
+      - "9093:9093"
+    networks:
+      - proxynet
 
-  kafka-1:
-    <<: *kafka-common
-    container_name: kafka-1
-    restart: always
-    ports:
-      - "127.0.0.1:9095:9095"
+  kafka2:
+    image: bitnami/kafka:3.7
+    container_name: kafka2
+    depends_on:
+      - zookeeper
     environment:
-      <<: *kafka-common-env
-      KAFKA_CFG_NODE_ID: 1
-      KAFKA_CFG_LISTENERS: SSL://:9092,CONTROLLER://:9093,EXTERNAL://:9095
-      KAFKA_CFG_ADVERTISED_LISTENERS: SSL://kafka-1:9092,EXTERNAL://127.0.0.1:9095
+      KAFKA_BROKER_ID: "2"
+      KAFKA_ZOOKEEPER_PROTOCOL: PLAINTEXT
+      KAFKA_CFG_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_CFG_LISTENERS: SSL://:9093
+      KAFKA_CFG_ADVERTISED_LISTENERS: SSL://kafka2:9093
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: "SSL:SSL"
+      KAFKA_CFG_INTER_BROKER_LISTENER_NAME: SSL
+      KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_CFG_SSL_KEYSTORE_LOCATION: /bitnami/kafka/config/certs/kafka.keystore.jks
+      KAFKA_CFG_SSL_KEYSTORE_PASSWORD: changeit
+      KAFKA_CFG_SSL_KEY_PASSWORD: changeit
+      KAFKA_CFG_SSL_TRUSTSTORE_LOCATION: /bitnami/kafka/config/certs/kafka.truststore.jks
+      KAFKA_CFG_SSL_TRUSTSTORE_PASSWORD: changeit
+      KAFKA_CFG_SSL_CLIENT_AUTH: "none"
+      KAFKA_CFG_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: ""
     volumes:
-      - kafka_1_data:/bitnami/kafka
-      - ./ssl/certificates/kafka-1.jks:/opt/bitnami/kafka/config/certs/kafka.jks:ro
-      - ./ssl/certificates/truststore.jks:/opt/bitnami/kafka/config/certs/truststore.jks:ro
+      - ./ssl/certificates/kafka-2.jks:/bitnami/kafka/config/certs/kafka.keystore.jks:ro
+      - ./ssl/certificates/truststore.jks:/bitnami/kafka/config/certs/kafka.truststore.jks:ro
+      - ./ssl/config/client-ssl.properties:/bitnami/kafka/config/client-ssl.properties:ro
+    ports:
+      - "19093:9093"
+    networks:
+      - proxynet
 
-  kafka-2:
-    <<: *kafka-common
-    container_name: kafka-2
-    restart: always
-    ports:
-      - "127.0.0.1:9096:9096"
+  kafka3:
+    image: bitnami/kafka:3.7
+    container_name: kafka3
+    depends_on:
+      - zookeeper
     environment:
-      <<: *kafka-common-env
-      KAFKA_CFG_NODE_ID: 2
-      KAFKA_CFG_LISTENERS: SSL://:9092,CONTROLLER://:9093,EXTERNAL://:9096
-      KAFKA_CFG_ADVERTISED_LISTENERS: SSL://kafka-2:9092,EXTERNAL://127.0.0.1:9096
+      KAFKA_BROKER_ID: "3"
+      KAFKA_ZOOKEEPER_PROTOCOL: PLAINTEXT
+      KAFKA_CFG_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_CFG_LISTENERS: SSL://:9093
+      KAFKA_CFG_ADVERTISED_LISTENERS: SSL://kafka3:9093
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: "SSL:SSL"
+      KAFKA_CFG_INTER_BROKER_LISTENER_NAME: SSL
+      KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_CFG_SSL_KEYSTORE_LOCATION: /bitnami/kafka/config/certs/kafka.keystore.jks
+      KAFKA_CFG_SSL_KEYSTORE_PASSWORD: changeit
+      KAFKA_CFG_SSL_KEY_PASSWORD: changeit
+      KAFKA_CFG_SSL_TRUSTSTORE_LOCATION: /bitnami/kafka/config/certs/kafka.truststore.jks
+      KAFKA_CFG_SSL_TRUSTSTORE_PASSWORD: changeit
+      KAFKA_CFG_SSL_CLIENT_AUTH: "none"
+      KAFKA_CFG_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: ""
     volumes:
-      - kafka_2_data:/bitnami/kafka
-      - ./ssl/certificates/kafka-2.jks:/opt/bitnami/kafka/config/certs/kafka.jks:ro
-      - ./ssl/certificates/truststore.jks:/opt/bitnami/kafka/config/certs/truststore.jks:ro
+      - ./ssl/certificates/kafka-3.jks:/bitnami/kafka/config/certs/kafka.keystore.jks:ro
+      - ./ssl/certificates/truststore.jks:/bitnami/kafka/config/certs/kafka.truststore.jks:ro
+      - ./ssl/config/client-ssl.properties:/bitnami/kafka/config/client-ssl.properties:ro
+    ports:
+      - "29093:9093"
+    networks:
+      - proxynet
 
   ui:
     image: provectuslabs/kafka-ui:v0.7.0
+    container_name: kafka-ui
     restart: always
     ports:
       - "127.0.0.1:8086:8080"
     environment:
-      KAFKA_CLUSTERS_0_BOOTSTRAP_SERVERS: kafka-0:9092
+      KAFKA_CLUSTERS_0_BOOTSTRAP_SERVERS: kafka1:9093
       KAFKA_CLUSTERS_0_NAME: kraft
       KAFKA_CLUSTERS_0_PROPERTIES_SECURITY_PROTOCOL: SSL
       KAFKA_CLUSTERS_0_PROPERTIES_SSL_TRUSTSTORE_LOCATION: /opt/kafka-ui/truststore.jks
       KAFKA_CLUSTERS_0_PROPERTIES_SSL_TRUSTSTORE_PASSWORD: changeit
+      KAFKA_CLUSTERS_0_PROPERTIES_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: ""
     volumes:
       - ./ssl/certificates/truststore.jks:/opt/kafka-ui/truststore.jks:ro
     networks:
@@ -90,8 +122,3 @@ services:
 networks:
   proxynet:
     name: custom_network
-
-volumes:
-  kafka_0_data:
-  kafka_1_data:
-  kafka_2_data: 
